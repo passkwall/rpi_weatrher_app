@@ -12,6 +12,28 @@ async function getApiData(param) {
     return jsonBody
 }
 
+function pickBackgroundColor (temp) {
+
+    console.log(temp);
+
+    if (temp >= 100) {
+        return "#9c1c2f"
+    }
+    
+    if (temp <= 100 && temp >= 75) {
+        return "#2e8c38"
+    }
+    if (temp <= 75 && temp >= 50) {
+        return "#2e8c73"
+    }
+    if (temp < 50 && temp > 25) {
+        return "#2e5d8c"
+    }
+    if (temp <= 25 && temp >= 0) {
+        return "#427db8"
+    }
+}
+
 
 export class Weather extends Component {
     constructor(props) {
@@ -31,7 +53,7 @@ export class Weather extends Component {
         var forecastWeatherData = getApiData("forecast")
         
         Promise.all([currentWeatherData, forecastWeatherData]).then((results) => {
-
+            
             if (results[0].error) {
                 this.setState({
                     pageState: "err"
@@ -46,7 +68,8 @@ export class Weather extends Component {
                 })
                 this.resetPage()
             }
-            
+            console.log(document.getElementsByClassName("App")[0].style.backgroundColor);      
+            document.getElementsByClassName("rendered")[0].style.backgroundColor = pickBackgroundColor(this.state.data.current.temp_f)
         })
     } 
     
@@ -63,7 +86,7 @@ export class Weather extends Component {
         )
     }
     return ( 
-        <div>
+        <div className="rendered">
             <img src={this.state.data.current.condition.icon} height="50%" width="50%"/> <br />
             Location: {this.state.location}, {this.state.data.location.region} <br />
             Currently: {this.state.data.current.temp_f}*, {this.state.data.current.condition.text} <br /> <br />
