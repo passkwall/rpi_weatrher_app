@@ -2,10 +2,10 @@ import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-const WEATHER_API = "" // weatherapi key goes here
-const ZIP_CODE = "" // yup that too
+export const WEATHER_API = "" // weatherapi key goes here
+export const ZIP_CODE = "" // yup that too
 
-async function getApiData(param) {
+async function getApiData(param) {    
     var WEATHER_URL = ` http://api.weatherapi.com/v1/${param}.json?key=${WEATHER_API}`
     var response = await fetch(WEATHER_URL+`&q=${ZIP_CODE}`, {method: "GET"})
     var jsonBody = await response.json()
@@ -13,9 +13,6 @@ async function getApiData(param) {
 }
 
 function pickBackgroundColor (temp) {
-
-    console.log(temp);
-
     if (temp >= 100) {
         return "#9c1c2f"
     }
@@ -26,11 +23,21 @@ function pickBackgroundColor (temp) {
         return "#2e8c73"
     }
     if (temp < 50 && temp > 25) {
-        return "#2e5d8c"
+        return "#2e5d8c" 
     }
     if (temp <= 25 && temp >= 0) {
         return "#427db8"
     }
+}
+
+async function refreshData() {
+    var res = await getApiData("current");    
+        return {
+            data: res,
+            pageState: "resolved",
+            location: res.location.name,
+            date: new Date()
+        }
 }
 
 
@@ -40,22 +47,41 @@ export class Weather extends Component {
         this.state = { 
             pageState: "loading"
         }
+        this.refreshState = this.refreshState.bind(this);
     };
     
     resetPage() {
-        // location.reload();
-        var newTime = new Date()
-        
-        setTimeout("location.reload()", 35000)
+        var newTime = new Date()        
+        setTimeout("location.reload()", 350000)
     }
+
+    refreshState() {
+        this.setState({
+            pageState: "loading"
+        })
+        console.log("Refreshing state...");
+        
+        refreshData().then((d) => {           
+            this.setState({
+                data: d.data,
+                pageState: d.pageState,
+                location: d.location,
+                date: d.date
+            })
+            document.getElementsByClassName("App-header")[0].style.backgroundColor = pickBackgroundColor(this.state.data.current.temp_f)
+            console.log("State refreshed");
+            
+        })
+        
+    }
+
     
     componentWillMount() {        
         var currentWeatherData = getApiData("current")
         var forecastWeatherData = getApiData("forecast")
         
-        Promise.all([currentWeatherData, forecastWeatherData]).then((results) => {
-            
-            if (results[0].error) {
+        Promise.all([currentWeatherData, forecastWeatherData]).then((results) => {            
+            if (results[0].error || results[1].error) {
                 this.setState({
                     pageState: "err"
                 })
@@ -67,10 +93,8 @@ export class Weather extends Component {
                     forecast: results[1],
                     date: new Date()
                 })
-                this.resetPage()
+                document.getElementsByClassName("App-header")[0].style.backgroundColor = pickBackgroundColor(this.state.data.current.temp_f)
             }
-            console.log(document.getElementsByClassName("App")[0].style.backgroundColor);      
-            document.getElementsByClassName("App-header")[0].style.backgroundColor = pickBackgroundColor(this.state.data.current.temp_f)
         })
     } 
     
@@ -83,21 +107,23 @@ export class Weather extends Component {
 
     if(this.state.pageState === "err") {
         return (
-            <h2>Ooops... weather broke.</h2>
+            <div>
+                <h2 style={{color: "#282c34"}}>Ooops... weather broke.</h2>
+            </div>
         )
     }
     return ( 
-        <div className="rendered" onClick={this.resetPage}>
+        <div className="rendered" onClick={this.refreshState}>
             <div float="left" width="40%" position="relative">
             Location: {this.state.location}, {this.state.data.location.region} <br />
             Currently: {this.state.data.current.temp_f}*, {this.state.data.current.condition.text} <br />
-            Refreshed at: <br />
-            Time:   {this.state.date.getHours()}:{this.state.date.getMinutes()} <br />
-            Date:   {this.state.date.getMonth() + 1}/{this.state.date.getDate()}/{this.state.date.getFullYear()}
             </div>
             <div float="right" width="40%" >
                 <img src={this.state.data.current.condition.icon} float="right" height="50%" width="50%"/> <br />
             </div>
+            Refreshed at: <br />
+            Time:   {this.state.date.getHours()}:{this.state.date.getMinutes()} <br />
+            Date:   {this.state.date.getMonth() + 1}/{this.state.date.getDate()}/{this.state.date.getFullYear()}
         </div>
 
     )
