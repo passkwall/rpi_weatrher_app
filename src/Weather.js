@@ -19,7 +19,6 @@ function pickBackgroundColor (temp) {
     if (temp >= 100) {
         return "#9c1c2f"
     }
-    
     if (temp <= 100 && temp >= 75) {
         return "#2e8c38"
     }
@@ -44,8 +43,10 @@ export class Weather extends Component {
     };
     
     resetPage() {
-        setTimeout("location.reload()", 100000000000000)
-        this.setState({date: new Date()})
+        // location.reload();
+        var newTime = new Date()
+        
+        setTimeout("location.reload()", 35000)
     }
     
     componentWillMount() {        
@@ -69,7 +70,7 @@ export class Weather extends Component {
                 this.resetPage()
             }
             console.log(document.getElementsByClassName("App")[0].style.backgroundColor);      
-            document.getElementsByClassName("rendered")[0].style.backgroundColor = pickBackgroundColor(this.state.data.current.temp_f)
+            document.getElementsByClassName("App-header")[0].style.backgroundColor = pickBackgroundColor(this.state.data.current.temp_f)
         })
     } 
     
@@ -86,13 +87,17 @@ export class Weather extends Component {
         )
     }
     return ( 
-        <div className="rendered">
-            <img src={this.state.data.current.condition.icon} height="50%" width="50%"/> <br />
+        <div className="rendered" onClick={this.resetPage}>
+            <div float="left" width="40%" position="relative">
             Location: {this.state.location}, {this.state.data.location.region} <br />
-            Currently: {this.state.data.current.temp_f}*, {this.state.data.current.condition.text} <br /> <br />
+            Currently: {this.state.data.current.temp_f}*, {this.state.data.current.condition.text} <br />
             Refreshed at: <br />
             Time:   {this.state.date.getHours()}:{this.state.date.getMinutes()} <br />
             Date:   {this.state.date.getMonth() + 1}/{this.state.date.getDate()}/{this.state.date.getFullYear()}
+            </div>
+            <div float="right" width="40%" >
+                <img src={this.state.data.current.condition.icon} float="right" height="50%" width="50%"/> <br />
+            </div>
         </div>
 
     )
